@@ -5,6 +5,9 @@ import { Noise } from "@chainsafe/libp2p-noise";
 import { mplex } from "@libp2p/mplex";
 import { bootstrap } from "@libp2p/bootstrap";
 import { floodsub } from "@libp2p/floodsub";
+import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
+import { toString as uint8ArrayToString } from "uint8arrays/to-string";
+import { Buffer } from "buffer";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const topic = "zksnark";
@@ -42,6 +45,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // UI elements
   const status = document.getElementById("status");
   const output = document.getElementById("output");
+  const peerId = document.getElementById("peerid");
 
   output.textContent = "";
 
@@ -73,8 +77,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await libp2p.start();
-  // Export libp2p to the window so you can play with the API
-  window.libp2p = libp2p;
+
+  libp2p.pubsub.subscribe(topic);
 
   //subscribe
   libp2p.pubsub.addEventListener("message", (evt) => {
@@ -83,24 +87,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Will not receive own published messages by default
-    console.log(`libp2p received: ${evt.detail.data}`);
+    console.log(`libp2p received: ${uint8ArrayToString(evt.detail.data)}`);
+    console.log("############## fruit ##############");
   });
-  libp2p.pubsub.subscribe(topic);
 
   status.innerText = "libp2p started!";
   log(`libp2p id is ${libp2p.peerId.toString()}`);
+  peerId.innerText = `libp2p id is ${libp2p.peerId.toString()}`;
 
-  while (true) {
-    const fruit = "banana";
-    console.log("############## fruit " + fruit + " ##############");
-    await libp2p.pubsub.publish(topic, fruit);
-    // wait a few seconds for messages to be received
-    await delay(5000);
-  }
+  setInterval(() => {
+    libp2p.pubsub
+      .publish(
+        topic,
+        uint8ArrayFromString(`messsage from , ${libp2p.peerId.toString()}`)
+      )
+      .catch((err) => {
+        console.error(err);
+      });
+  }, 1000);
+
+  // Export libp2p to the window so you can play with the API
+  window.libp2p = libp2p;
 });
-
-async function delay(ms) {
-  await new Promise((resolve) => {
-    setTimeout(() => resolve(), ms);
-  });
-}
