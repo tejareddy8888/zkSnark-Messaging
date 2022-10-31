@@ -56,24 +56,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Listen for new peers
   libp2p.addEventListener("peer:discovery", (evt) => {
     const peer = evt.detail;
-    log(`Found peer ${peer.id.toString()}`);
+    console.debug(`Found peer ${peer.id.toString()}`);
 
     // dial them when we discover them
     libp2p.dial(evt.detail.id).catch((err) => {
-      log(`Could not dial ${evt.detail.id}`, err);
+      console.debug(`Could not dial ${evt.detail.id}`, err);
     });
   });
 
   // Listen for new connections to peers
   libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
     const connection = evt.detail;
-    log(`Connected to ${connection.remotePeer.toString()}`);
+    console.debug(`Connected to ${connection.remotePeer.toString()}`);
   });
 
   // Listen for peers disconnecting
   libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
     const connection = evt.detail;
-    log(`Disconnected from ${connection.remotePeer.toString()}`);
+    console.debug(`Disconnected from ${connection.remotePeer.toString()}`);
   });
 
   await libp2p.start();
@@ -109,3 +109,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Export libp2p to the window so you can play with the API
   window.libp2p = libp2p;
 });
+
+
