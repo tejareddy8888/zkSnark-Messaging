@@ -1,0 +1,23 @@
+{
+  "name": "setup",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "vite"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^9.0.0",
+    "@libp2p/bootstrap": "^5.0.0",
+    "@libp2p/mplex": "^7.0.0",
+    "@libp2p/webrtc-star": "^5.0.2",
+    "@libp2p/websockets": "^5.0.0",
+    "libp2p": "^0.40.0"
+  },
+  "devDependencies": {
+    "vite": "^2.8.6"
+  }
+}
