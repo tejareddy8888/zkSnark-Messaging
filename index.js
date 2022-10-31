@@ -4,8 +4,10 @@ import { webRTCStar } from "@libp2p/webrtc-star";
 import { Noise } from "@chainsafe/libp2p-noise";
 import { mplex } from "@libp2p/mplex";
 import { bootstrap } from "@libp2p/bootstrap";
+import { floodsub } from "@libp2p/floodsub";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  const topic = "zksnark";
   const wrtcStar = webRTCStar();
 
   // Create our libp2p node
@@ -22,6 +24,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     transports: [webSockets(), wrtcStar.transport],
     connectionEncryption: [() => new Noise()],
     streamMuxers: [mplex()],
+    pubsub: floodsub(),
     peerDiscovery: [
       wrtcStar.discovery,
       bootstrap({
@@ -70,9 +73,34 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   await libp2p.start();
+  // Export libp2p to the window so you can play with the API
+  window.libp2p = libp2p;
+
+  //subscribe
+  libp2p.pubsub.addEventListener("message", (evt) => {
+    if (evt.detail.topic !== topic) {
+      return;
+    }
+
+    // Will not receive own published messages by default
+    console.log(`libp2p received: ${evt.detail.data}`);
+  });
+  libp2p.pubsub.subscribe(topic);
+
   status.innerText = "libp2p started!";
   log(`libp2p id is ${libp2p.peerId.toString()}`);
 
-  // Export libp2p to the window so you can play with the API
-  window.libp2p = libp2p;
+  while (true) {
+    const fruit = "banana";
+    console.log("############## fruit " + fruit + " ##############");
+    await libp2p.pubsub.publish(topic, fruit);
+    // wait a few seconds for messages to be received
+    await delay(5000);
+  }
 });
+
+async function delay(ms) {
+  await new Promise((resolve) => {
+    setTimeout(() => resolve(), ms);
+  });
+}
