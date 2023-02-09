@@ -7,11 +7,11 @@ import { bootstrap } from "@libp2p/bootstrap";
 import { floodsub } from "@libp2p/floodsub";
 import { fromString as uint8ArrayFromString } from "uint8arrays/from-string";
 import { toString as uint8ArrayToString } from "uint8arrays/to-string";
-import { Buffer } from "buffer";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const topic = "zksnark";
   const wrtcStar = webRTCStar();
+  let counter = 0;
 
   // Create our libp2p node
   const libp2p = await createLibp2p({
@@ -56,43 +56,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Listen for new peers
   libp2p.addEventListener("peer:discovery", (evt) => {
     const peer = evt.detail;
-    log(`Found peer ${peer.id.toString()}`);
+    console.info(`Found peer ${peer.id.toString()}`);
 
     // dial them when we discover them
     libp2p.dial(evt.detail.id).catch((err) => {
-      log(`Could not dial ${evt.detail.id}`, err);
+      console.info(`Could not dial ${evt.detail.id}`, err);
     });
   });
 
   // Listen for new connections to peers
   libp2p.connectionManager.addEventListener("peer:connect", (evt) => {
     const connection = evt.detail;
-    log(`Connected to ${connection.remotePeer.toString()}`);
+    console.info(`Connected to ${connection.remotePeer.toString()}`);
   });
 
   // Listen for peers disconnecting
   libp2p.connectionManager.addEventListener("peer:disconnect", (evt) => {
     const connection = evt.detail;
-    log(`Disconnected from ${connection.remotePeer.toString()}`);
+    console.info(`Disconnected from ${connection.remotePeer.toString()}`);
   });
 
   await libp2p.start();
 
   libp2p.pubsub.subscribe(topic);
 
-  //subscribe
-  libp2p.pubsub.addEventListener("message", (evt) => {
-    if (evt.detail.topic !== topic) {
-      return;
-    }
-
-    // Will not receive own published messages by default
-    console.log(`libp2p received: ${uint8ArrayToString(evt.detail.data)}`);
-    console.log("############## fruit ##############");
-  });
-
   status.innerText = "libp2p started!";
-  log(`libp2p id is ${libp2p.peerId.toString()}`);
+  // log(`libp2p id is ${libp2p.peerId.toString()}`);
   peerId.innerText = `libp2p id is ${libp2p.peerId.toString()}`;
 
   setInterval(() => {
@@ -104,7 +93,32 @@ document.addEventListener("DOMContentLoaded", async () => {
       .catch((err) => {
         console.error(err);
       });
-  }, 1000);
+  }, 10000);
+
+  /// MPC INIT
+
+  const mpcTopic = "mpcinit";
+  libp2p.pubsub.subscribe(mpcTopic);
+
+  //subscribe
+  libp2p.pubsub.addEventListener("message", (evt) => {
+    if (evt.detail.topic !== topic) {
+      return;
+    }
+    // Will not receive own published messages by default
+    console.log(`libp2p received: ${uint8ArrayToString(evt.detail.data)}`);
+    console.log("############## mpc init ##############");
+    log(`${counter++} message ${uint8ArrayToString(evt.detail.data)}`);
+  });
+
+  libp2p.pubsub
+    .publish(
+      mpcTopic,
+      uint8ArrayFromString(` mpcInit from , ${libp2p.peerId.toString()}`)
+    )
+    .catch((err) => {
+      console.error(err);
+    });
 
   // Export libp2p to the window so you can play with the API
   window.libp2p = libp2p;

@@ -17,6 +17,7 @@
     "@libp2p/webrtc-star": "^5.0.2",
     "@libp2p/websockets": "^5.0.0",
     "buffer": "^6.0.3",
+    "child_process": "^1.0.2",
     "libp2p": "^0.40.0",
     "uint8arrays": "^4.0.0"
   },
